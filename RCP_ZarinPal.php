@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: درگاه پرداخت زرین پال برای Restrict Content Pro
-Version: 1.0.0
+Version: 1.1.0
 Requires at least: 3.5
-Description: درگاه پرداخت <a href="http://www.zarinpal.com/" target="_blank"> زرین پال </a> برای افزونه Restrict Content Pro
+Description: درگاه پرداخت <a href="http://www.zarinpal.com/" target="_blank"> زرین پال </a> برای افزونه Restrict Content Pro | از سری محصولات وب سایت <a href="http://webforest.ir">وب فارست</a>
 Plugin URI: http://webforest.ir/
 Author: حنّان ابراهیمی ستوده
 Author URI: http://hannanstd.ir/
@@ -32,7 +32,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 				
 		public function ZarinPal_Register_By_HANNANStd($gateways) {
 			global $rcp_options;
-			$gateways['ZarinPal'] = $rcp_options['zarinpal_name'] ? $rcp_options['zarinpal_name'] : __( 'زرین پال', 'rcp_zarinpal');
+			$gateways['ZarinPal'] = isset($rcp_options['zarinpal_name']) ? $rcp_options['zarinpal_name'] : __( 'زرین پال', 'rcp_zarinpal');
 			return $gateways;
 		}
 
@@ -50,8 +50,8 @@ if (!class_exists('RCP_ZarinPal') ) {
 					</th>
 					<td>
 						<select id="rcp_settings[zarinpal_server]" name="rcp_settings[zarinpal_server]">
-							<option value="German" <?php selected('German', $rcp_options['zarinpal_server']); ?>><?php _e( 'آلمان', 'rcp_zarinpal' ); ?></option>
-							<option value="Iran" <?php selected('Iran', $rcp_options['zarinpal_server']); ?>><?php _e( 'ایران', 'rcp_zarinpal' ); ?></option>
+							<option value="German" <?php selected('German', isset($rcp_options['zarinpal_server']) ? $rcp_options['zarinpal_server'] : '' ); ?>><?php _e( 'آلمان', 'rcp_zarinpal' ); ?></option>
+							<option value="Iran" <?php selected('Iran', isset($rcp_options['zarinpal_server']) ? $rcp_options['zarinpal_server'] : '' ); ?>><?php _e( 'ایران', 'rcp_zarinpal' ); ?></option>
 						</select>
 					</td>
 				</tr>
@@ -68,7 +68,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 						<label for="rcp_settings[zarinpal_query_name]"><?php _e( 'نام لاتین درگاه', 'rcp_zarinpal' ); ?></label>
 					</th>
 					<td>
-						<input class="regular-text" id="rcp_settings[zarinpal_query_name]" style="width: 300px;" name="rcp_settings[zarinpal_query_name]" value="<?php echo $rcp_options['zarinpal_query_name'] ? $rcp_options['zarinpal_query_name'] : 'ZarinPal'; ?>"/>
+						<input class="regular-text" id="rcp_settings[zarinpal_query_name]" style="width: 300px;" name="rcp_settings[zarinpal_query_name]" value="<?php echo isset($rcp_options['zarinpal_query_name']) ? $rcp_options['zarinpal_query_name'] : 'ZarinPal'; ?>"/>
 						<div class="description"><?php _e( 'این نام در هنگام بازگشت از بانک در آدرس بازگشت از بانک نمایان خواهد شد . از به کاربردن حروف زائد و فاصله جدا خودداری نمایید . این نام باید با نام سایر درگاه ها متفاوت باشد .', 'rcp_zarinpal' ); ?></div>
 					</td>
 				</tr>
@@ -77,7 +77,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 						<label for="rcp_settings[zarinpal_name]"><?php _e( 'نام نمایشی درگاه', 'rcp_zarinpal' ); ?></label>
 					</th>
 					<td>
-						<input class="regular-text" id="rcp_settings[zarinpal_name]" style="width: 300px;" name="rcp_settings[zarinpal_name]" value="<?php echo $rcp_options['zarinpal_name'] ? $rcp_options['zarinpal_name'] : __( 'زرین پال', 'rcp_zarinpal'); ?>"/>
+						<input class="regular-text" id="rcp_settings[zarinpal_name]" style="width: 300px;" name="rcp_settings[zarinpal_name]" value="<?php echo isset($rcp_options['zarinpal_name']) ? $rcp_options['zarinpal_name'] : __( 'زرین پال', 'rcp_zarinpal'); ?>"/>
 					</td>
 				</tr>
 				<tr valign="top">
@@ -96,8 +96,8 @@ if (!class_exists('RCP_ZarinPal') ) {
 		public function ZarinPal_Request_By_HANNANStd($subscription_data) {
 			
 			global $rcp_options;
-			
-			$query = $rcp_options['zarinpal_query_name'] ? $rcp_options['zarinpal_query_name'] : 'ZarinPal';
+			ob_start();
+			$query = isset($rcp_options['zarinpal_query_name']) ? $rcp_options['zarinpal_query_name'] : 'ZarinPal';
 			$amount = $subscription_data['price'];
 			//fee is just for paypal recurring or ipn gateway ....
 			//$amount = $subscription_data['price'] + $subscription_data['fee']; 
@@ -121,7 +121,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 				$amount = $amount/10;
 			
 			//Start of ZarinPal
-			$MerchantID = $rcp_options['zarinpal_merchant'];
+			$MerchantID = isset($rcp_options['zarinpal_merchant']) ? $rcp_options['zarinpal_merchant'] : '';
 			$Amount = intval($amount);
 			$Email = isset($subscription_data['user_email']) ? $subscription_data['user_email'] : '-'; 
 			$CallbackURL =  add_query_arg('gateway', $query, $subscription_data['return_url']);
@@ -134,7 +134,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 			$Mobile = apply_filters( 'RCP_Mobile', $Mobile, $subscription_data );
 			
 			
-			if( isset( $rcp_options['zarinpal_server'] ) && ($rcp_options['zarinpal_server'] == 'Iran') )
+			if( isset( $rcp_options['zarinpal_server'] ) and ($rcp_options['zarinpal_server'] == 'Iran') )
 			{	
 				$WebServiceUrl = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
 			}
@@ -156,8 +156,18 @@ if (!class_exists('RCP_ZarinPal') ) {
 			);
 	
 			if($result->Status == 100)
-			{
-				Header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority);
+			{			
+				ob_end_flush();
+				ob_end_clean();
+				if (!headers_sent()) {
+					header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority);
+					exit;
+				}
+				else {
+					$redirect_page = 'https://www.zarinpal.com/pg/StartPay/'.$result->Authority;
+					echo "<script type='text/javascript'>window.onload = function () { top.location.href = '" . $redirect_page . "'; };</script>";
+					exit;
+				}
 			} 
 			else
 			{	
@@ -184,7 +194,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 			else 
 				$zarinpal_payment_data = isset($_SESSION["zarinpal_payment_data"]) ? $_SESSION["zarinpal_payment_data"] : '';
 			
-			$query = $rcp_options['zarinpal_query_name'] ? $rcp_options['zarinpal_query_name'] : 'ZarinPal';
+			$query = isset($rcp_options['zarinpal_query_name']) ? $rcp_options['zarinpal_query_name'] : 'ZarinPal';
 						
 			if 	( ($_GET['gateway'] == $query) && $zarinpal_payment_data )
 			{
@@ -200,7 +210,7 @@ if (!class_exists('RCP_ZarinPal') ) {
 				
 				$subscription_id    = rcp_get_subscription_id( $user_id );
 				$user_data          = get_userdata( $user_id );
-				$payment_method =  $rcp_options['zarinpal_name'] ? $rcp_options['zarinpal_name'] : __( 'زرین پال', 'rcp_zarinpal');
+				$payment_method =  isset($rcp_options['zarinpal_name']) ? $rcp_options['zarinpal_name'] : __( 'زرین پال', 'rcp_zarinpal');
 				
 				if( ! $user_data || ! $subscription_id || ! rcp_get_subscription_details( $subscription_id ) )
 					return;
@@ -217,14 +227,14 @@ if (!class_exists('RCP_ZarinPal') ) {
 				if ($new_payment == 1) {
 				
 					//Start of ZarinPal
-					$MerchantID = $rcp_options['zarinpal_merchant'];
+					$MerchantID = isset($rcp_options['zarinpal_merchant']) ? $rcp_options['zarinpal_merchant'] : '';
 					$Amount = intval($amount);
 					if ($rcp_options['currency'] == 'ریال' || $rcp_options['currency'] == 'RIAL' || $rcp_options['currency'] == 'ریال ایران' || $rcp_options['currency'] == 'Iranian Rial (&#65020;)')
 						$Amount = $Amount/10;
 					
 					$Authority = $_GET['Authority'];
 					
-					if( isset( $rcp_options['zarinpal_server'] ) && ($rcp_options['zarinpal_server'] == 'Iran') )
+					if( isset( $rcp_options['zarinpal_server'] ) and ($rcp_options['zarinpal_server'] == 'Iran') )
 					{
 						$WebServiceUrl = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
 					}
@@ -301,12 +311,15 @@ if (!class_exists('RCP_ZarinPal') ) {
 					
 					
 						rcp_set_status( $user_id, 'active' );
-						rcp_email_subscription_status( $user_id, 'active' );
-				
-						if( ! isset( $rcp_options['disable_new_user_notices'] ) ) {
-							wp_new_user_notification( $user_id );
+					
+						
+						if( version_compare( RCP_PLUGIN_VERSION, '2.1.0', '<' ) ) {
+							rcp_email_subscription_status( $user_id, 'active' );
+							if( ! isset( $rcp_options['disable_new_user_notices'] ) )
+								wp_new_user_notification( $user_id );
 						}
 					
+						update_user_meta( $user_id, 'rcp_payment_profile_id', $user_id );
 					
 						update_user_meta( $user_id, 'rcp_signup_method', 'live' );
 						//rcp_recurring is just for paypal or ipn gateway
@@ -503,4 +516,12 @@ if (!class_exists('RCP_ZarinPal') ) {
 	}
 }
 new RCP_ZarinPal();
+if ( !function_exists('change_cancelled_to_pending_By_HANNANStd')) {	
+	add_action( 'rcp_set_status', 'change_cancelled_to_pending_By_HANNANStd', 10, 2 );
+	function change_cancelled_to_pending_By_HANNANStd( $status, $user_id ) {
+		if( 'cancelled' == $status )
+			rcp_set_status( $user_id, 'expired' );
+			return true;
+	}
+}
 ?>

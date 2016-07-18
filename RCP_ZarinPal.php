@@ -160,11 +160,11 @@ if (!class_exists('RCP_ZarinPal') ) {
 				ob_end_flush();
 				ob_end_clean();
 				if (!headers_sent()) {
-					header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority);
+					header('Location: https://www.zarinpal.com/pg/StartPay/'.$result->Authority.'/Zaringate');
 					exit;
 				}
 				else {
-					$redirect_page = 'https://www.zarinpal.com/pg/StartPay/'.$result->Authority;
+					$redirect_page = 'https://www.zarinpal.com/pg/StartPay/'.$result->Authority.'/Zaringate';
 					echo "<script type='text/javascript'>window.onload = function () { top.location.href = '" . $redirect_page . "'; };</script>";
 					exit;
 				}

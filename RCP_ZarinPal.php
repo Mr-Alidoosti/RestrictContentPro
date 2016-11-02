@@ -155,9 +155,6 @@ if (!class_exists('RCP_ZarinPal') ) {
 					)
 			);
 			
-			/*$result->Status =100;
-			$result->Authority =100;*/
-	
 			if($result->Status == 100)
 			{			
 				global $rcp_options, $post; ?>

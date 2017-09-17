@@ -563,4 +563,5 @@ if ( !function_exists('RCP_User_Registration_Data_By_HANNANStd') && !function_ex
 		return $user;
 	}
 }
+add_filter('rcp_is_zero_decimal_currency', function(){ return true; });
 ?>

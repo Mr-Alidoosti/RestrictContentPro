@@ -1,13 +1,12 @@
 <?php
 /*
 Plugin Name: درگاه پرداخت زرین پال برای Restrict Content Pro
-Version: 3.0.1
+Version: 3.1.0
 Requires at least: 4.0
-Description: درگاه پرداخت <a href="http://www.zarinpal.com/" target="_blank"> زرین پال </a> برای افزونه Restrict Content Pro | از سری محصولات وب سایت <a href="http://webforest.ir">وب فارست</a>
-Plugin URI: http://webforest.ir/
-Author: حنّان ابراهیمی ستوده
-Author URI: http://hannanstd.ir/
-License: GPL 2
+Description: درگاه پرداخت <a href="http://www.zarinpal.com/" target="_blank"> زرین پال </a> برای افزونه Restrict Content Pro | از سری محصولات وب سایت <a href="http://plugate.ir">پلاگیت</a>
+Plugin URI: http://plugate.ir/
+Author: پلاگیت
+Author URI: http://plugate.ir/
 */
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -47,8 +46,8 @@ if ( ! class_exists( 'RCP_ZarinPal' ) ) {
 		public function RCP_IRAN_Currencies_By_HANNANStd( $currencies ) {
 			unset( $currencies['RIAL'], $currencies['IRR'], $currencies['IRT'] );
 			$iran_currencies = array(
-				'IRT' => __( 'تومان', 'rcp' ),
-				'IRR' => __( 'ریال', 'rcp' )
+				'IRT' => __( 'تومان ایران (تومان)', 'rcp' ),
+				'IRR' => __( 'ریال ایران (ریال)', 'rcp' )
 			);
 
 			return array_unique( array_merge( $iran_currencies, $currencies ) );
@@ -289,7 +288,10 @@ if ( ! class_exists( 'RCP_ZarinPal' ) ) {
 						$Amount = $Amount / 10;
 					}
 
-					$Authority = $_GET['Authority'];
+					$Authority = isset( $_GET['Authority'] ) ? sanitize_text_field( $_GET['Authority'] ) : '';
+
+					$__param = $Authority;
+					RCP_check_verifications( __CLASS__, $__param );
 
 					if ( isset( $rcp_options['zarinpal_server'] ) and ( $rcp_options['zarinpal_server'] == 'Iran' ) ) {
 						$WebServiceUrl = 'https://ir.zarinpal.com/pg/services/WebGate/wsdl';
@@ -297,7 +299,7 @@ if ( ! class_exists( 'RCP_ZarinPal' ) ) {
 						$WebServiceUrl = 'https://de.zarinpal.com/pg/services/WebGate/wsdl';
 					}
 
-					if ( $_GET['Status'] == 'OK' ) {
+					if ( isset( $_GET['Status'] ) && $_GET['Status'] == 'OK' ) {
 
 						$client = new SoapClient( $WebServiceUrl, array( 'encoding' => 'UTF-8' ) );
 						$result = $client->PaymentVerification(
@@ -357,7 +359,7 @@ if ( ! class_exists( 'RCP_ZarinPal' ) ) {
 						do_action( 'RCP_ZarinPal_Insert_Payment', $payment_data, $user_id );
 
 						$rcp_payments = new RCP_Payments();
-						$rcp_payments->insert( $payment_data );
+						RCP_set_verifications($rcp_payments->insert( $payment_data ), __CLASS__, $__param);
 
 
 						$new_subscription_id = get_user_meta( $user_id, 'rcp_subscription_level_new', true );
@@ -507,7 +509,7 @@ if ( ! class_exists( 'RCP_ZarinPal' ) ) {
 			return $content . $message;
 		}
 
-		private static function Fault( $error ) {
+		private function Fault( $error ) {
 			$response = '';
 			switch ( $error ) {
 
@@ -593,6 +595,62 @@ if ( ! function_exists( 'RCP_User_Registration_Data_By_HANNANStd' ) && ! functio
 		}
 
 		return $user;
+	}
+}
+
+if ( ! function_exists( 'RCP_check_verifications' ) ) {
+	function RCP_check_verifications( $gateway, $params ) {
+
+		if ( ! function_exists( 'rcp_get_payment_meta_db_name' ) ) {
+			return;
+		}
+
+		if ( is_array( $params ) || is_object( $params ) ) {
+			$params = implode( '_', (array) $params );
+		}
+		if ( empty( $params ) || trim( $params ) == '' ) {
+			return;
+		}
+
+		$gateway = str_ireplace( array( 'RCP_', 'bank' ), array( '', '' ), $gateway );
+		$params  = trim( strtolower( $gateway ) . '_' . $params );
+
+		$table = rcp_get_payment_meta_db_name();
+
+		global $wpdb;
+		$check = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM {$table} WHERE meta_key='_verification_params' AND meta_value='%s'", $params ) );
+
+		if ( ! empty( $check ) ) {
+			wp_die( 'وضعیت این تراکنش قبلا مشخص شده بود.' );
+		}
+	}
+}
+
+if ( ! function_exists( 'RCP_set_verifications' ) ) {
+	function RCP_set_verifications( $payment_id, $gateway, $params ) {
+
+		if ( ! function_exists( 'rcp_get_payment_meta_db_name' ) ) {
+			return;
+		}
+
+		if ( is_array( $params ) || is_object( $params ) ) {
+			$params = implode( '_', (array) $params );
+		}
+		if ( empty( $params ) || trim( $params ) == '' ) {
+			return;
+		}
+
+		$gateway = str_ireplace( array( 'RCP_', 'bank' ), array( '', '' ), $gateway );
+		$params  = trim( strtolower( $gateway ) . '_' . $params );
+
+		$table = rcp_get_payment_meta_db_name();
+
+		global $wpdb;
+		$wpdb->insert( $table, array(
+			'payment_id' => $payment_id,
+			'meta_key'   => '_verification_params',
+			'meta_value' => $params
+		), array( '%d', '%s', '%s' ) );
 	}
 }
 ?>

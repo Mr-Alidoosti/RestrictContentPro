@@ -5,7 +5,7 @@ Version: 3.2.4
 Requires at least: 4.0
 Description: درگاه پرداخت <a href="http://www.zarinpal.com/" target="_blank"> زرین پال </a> برای افزونه Restrict Content Pro
 Plugin URI: http://zarinpal.com
-Author: زرین پال- A.Y
+Author: حنّان ابراهیمی ستوده Update to new  A.Y
 Author URI: http://zarinpal.com
  */
 if (!defined('ABSPATH')) {

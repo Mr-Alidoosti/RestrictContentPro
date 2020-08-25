@@ -157,8 +157,8 @@ if (!class_exists('RCP_ZarinPal')) {
                         <input class="regular-text" id="rcp_settings[zarinpal_merchant]" style="width: 300px;"
                                name="rcp_settings[zarinpal_merchant]"
                                value="<?php if (isset($rcp_options['zarinpal_merchant'])) {
-                echo $rcp_options['zarinpal_merchant'];
-            }?>"/>
+                                   echo $rcp_options['zarinpal_merchant'];
+                               }?>"/>
                     </td>
                 </tr>
                 <tr valign="top">
@@ -193,7 +193,7 @@ if (!class_exists('RCP_ZarinPal')) {
                 <?php do_action('RCP_ZarinPal_after_settings', $rcp_options);?>
             </table>
             <?php
-}
+        }
 
         public function ZarinPal_Request_By_HANNANStd($subscription_data)
         {
@@ -250,12 +250,13 @@ if (!class_exists('RCP_ZarinPal')) {
             $Description = apply_filters('RCP_ZarinPal_Description', $Description, $subscription_data);
             $Mobile = apply_filters('RCP_Mobile', $Mobile, $subscription_data);
 
-            $data = array('MerchantID' => $MerchantID,
-                'Amount' => $Amount,
-                'CallbackURL' => $CallbackURL,
-                'Description' => $Description);
+            
+            $data = array('merchant_id' => $MerchantID,
+                'amount' => $Amount,
+                'callback_url' => $CallbackURL,
+                'description' => $Description);
             $jsonData = json_encode($data);
-            $ch = curl_init('https://www.zarinpal.com/pg/rest/WebGate/PaymentRequest.json');
+            $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/request.json');
             curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v1');
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
@@ -269,19 +270,19 @@ if (!class_exists('RCP_ZarinPal')) {
             $result = json_decode($result, true);
             curl_close($ch);
 
-            if ($result['Status'] == 100) {
+            if ($result['data']['code'] == 100) {
 
                 ob_end_clean();
                 if (!headers_sent()) {
-                    header('Location: https://www.zarinpal.com/pg/StartPay/' . $result['Authority'] . '/ZarinGate');
+                    header('Location: https://www.zarinpal.com/pg/StartPay/' . $result['data']["authority"] . '/ZarinGate');
                     exit;
                 } else {
-                    $redirect_page = 'https://www.zarinpal.com/pg/StartPay/' . $result['Authority'] . '/ZarinGate';
+                    $redirect_page = 'https://www.zarinpal.com/pg/StartPay/' .$result['data']["authority"] . '/ZarinGate';
                     echo "<script type='text/javascript'>window.onload = function () { top.location.href = '" . $redirect_page . "'; };</script>";
                     exit;
                 }
             } else {
-                wp_die(sprintf(__('متاسفانه پرداخت به دلیل خطای زیر امکان پذیر نمی باشد . <br/><b> %s </b>', 'rcp_zarinpal'), $this->Fault($result['Status'])));
+                wp_die(sprintf(__('متاسفانه پرداخت به دلیل خطای زیر امکان پذیر نمی باشد . <br/><b> %s </b>', 'rcp_zarinpal'), $this->Fault($result['errors']['code'])));
             }
             //End of ZarinPal
 
@@ -356,9 +357,9 @@ if (!class_exists('RCP_ZarinPal')) {
 
                     if (isset($_GET['Status']) && $_GET['Status'] == 'OK') {
 
-                        $data = array('MerchantID' => $MerchantID, 'Authority' => $Authority, 'Amount' => $Amount);
+                        $data = array('merchant_id' => $MerchantID, 'authority' => $Authority, 'amount' => $Amount);
                         $jsonData = json_encode($data);
-                        $ch = curl_init('https://www.zarinpal.com/pg/rest/WebGate/PaymentVerification.json');
+                        $ch = curl_init('https://api.zarinpal.com/pg/v4/payment/verify.json');
                         curl_setopt($ch, CURLOPT_USERAGENT, 'ZarinPal Rest Api v1');
                         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
                         curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
@@ -372,13 +373,13 @@ if (!class_exists('RCP_ZarinPal')) {
                         curl_close($ch);
                         $result = json_decode($result, true);
 
-                        if ($result['Status'] == 100) {
+                        if ($result['data']['code'] == 100) {
                             $payment_status = 'completed';
                             $fault = 0;
-                            $transaction_id = $result['RefID'];
+                            $transaction_id = $result ['data']['ref_id'];
                         } else {
                             $payment_status = 'failed';
-                            $fault = $result['Status'];
+                            $fault = $result ['data']['code'];
                             $transaction_id = 0;
                         }
                     } else {

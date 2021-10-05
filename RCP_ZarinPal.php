@@ -228,14 +228,14 @@ if (!class_exists('RCP_ZarinPal')) {
             //Action For ZarinPal or RCP Developers...
             do_action('RCP_Before_Sending_to_ZarinPal', $subscription_data);
 
-            if (!in_array($rcp_options['currency'], array(
+            if (in_array($rcp_options['currency'], array(
                 'irt',
                 'IRT',
                 'تومان',
                 __('تومان', 'rcp'),
                 __('تومان', 'rcp_zarinpal'),
             ))) {
-                $amount = $amount / 10;
+                $amount = $amount * 10;
             }
 
             //Start of ZarinPal
@@ -340,16 +340,15 @@ if (!class_exists('RCP_ZarinPal')) {
                     //Start of ZarinPal
                     $MerchantID = isset($rcp_options['zarinpal_merchant']) ? $rcp_options['zarinpal_merchant'] : '';
                     $Amount = intval($amount);
-                    if (!in_array($rcp_options['currency'], array(
+                    if (in_array($rcp_options['currency'], array(
                         'irt',
                         'IRT',
                         'تومان',
                         __('تومان', 'rcp'),
                         __('تومان', 'rcp_zarinpal'),
                     ))) {
-                        $Amount = $Amount / 10;
+                        $Amount = $Amount * 10;
                     }
-
                     $Authority = isset($_GET['Authority']) ? sanitize_text_field($_GET['Authority']) : '';
 
                     $__param = $Authority;
